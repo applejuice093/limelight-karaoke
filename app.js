@@ -49,7 +49,7 @@ function ensureCtx(){if(ctx)return;ctx=new AudioContext();master=ctx.createGain(
   wet=ctx.createGain();hp.connect(wet);lp.connect(wet);wet.connect(master);
   dryG=dry;applyKaraoke()}
 let wet,dryG;function applyKaraoke(){if(!wet)return;const on=$('karaoke').checked;const t=ctx.currentTime;wet.gain.setTargetAtTime(on?1:0,t,.05);dryG.gain.setTargetAtTime(on?0:1,t,.05)}
-function loadAudio(url,name){lines=[];render();audio.src=url;$('trackName').textContent=name;audio.load()}
+let lastUrl=null;function loadAudio(url,name){if(lastUrl&&lastUrl!==url)URL.revokeObjectURL(lastUrl);lastUrl=url.startsWith('blob:')?url:null;lines=[];render();audio.src=url;$('trackName').textContent=name;audio.load()}
 function play(){ensureCtx();ctx.resume();audio.src&&audio.play().catch(e=>console.warn(e))}
 audio.onplay=()=>$('playBtn').textContent='❚❚';audio.onpause=()=>$('playBtn').textContent='▶';
 $('playBtn').onclick=()=>audio.paused?play():audio.pause();
