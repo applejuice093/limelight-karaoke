@@ -59,7 +59,8 @@ const applyRate=()=>{audio.playbackRate=+$('rate').value;audio.preservesPitch=au
 $('rate').onchange=applyRate;$('keepPitch').onchange=applyRate;audio.onloadedmetadata=applyRate;
 // loading
 function loadFile(f){if(!f)return;if(f.type.startsWith('audio/')||/\.(mp3|wav|ogg|m4a|flac|aac|opus)$/i.test(f.name)){loadAudio(URL.createObjectURL(f),f.name);window.LLauto&&window.LLauto(f)}
-  else f.text().then(t=>setLyrics(t))}
+  else if(/\.(lrc|txt)$/i.test(f.name)||f.type.startsWith('text/'))f.text().then(t=>setLyrics(t));
+  else (window.toast||console.warn)('Unsupported file: '+f.name+' — drop audio or .lrc/.txt lyrics')}
 $('audioFile').onchange=e=>loadFile(e.target.files[0]);$('lrcFile').onchange=e=>loadFile(e.target.files[0]);
 $('demoBtn').onclick=()=>{loadAudio(window.DEMO_AUDIO,'Limelight Demo — generated beat · 0:29');setLyrics(DEMO_LRC)};
 addEventListener('dragover',e=>{e.preventDefault();document.body.classList.add('drag')});
