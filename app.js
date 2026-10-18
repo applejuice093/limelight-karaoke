@@ -88,6 +88,8 @@ $('micVol').oninput=e=>micGain&&(micGain.gain.value=+e.target.value);
 $('fxRev').onchange=e=>revGain&&(revGain.gain.value=e.target.checked?.45:0);$('fxEcho').onchange=e=>echoGain&&(echoGain.gain.value=e.target.checked?.5:0);
 // record
 $('recBtn').onclick=()=>{ensureCtx();ctx.resume();if(recorder&&recorder.state==='recording'){recorder.stop();return}
+  if(typeof MediaRecorder==='undefined'){(window.toast||console.warn)('Recording is not supported in this browser');return}
+  const old=$('recLink');if(old.href&&old.href.startsWith('blob:'))URL.revokeObjectURL(old.href);
   const mime=['audio/webm;codecs=opus','audio/ogg;codecs=opus','audio/mp4'].find(m=>MediaRecorder.isTypeSupported(m))||'';
   recorder=new MediaRecorder(recDest.stream,mime?{mimeType:mime}:{});chunks=[];recorder.ondataavailable=e=>e.data.size&&chunks.push(e.data);
   recorder.onstop=()=>{const b=new Blob(chunks,{type:recorder.mimeType});const a=$('recLink');a.href=URL.createObjectURL(b);a.download='karaoke-take.'+(b.type.includes('mp4')?'m4a':b.type.includes('ogg')?'ogg':'webm');a.hidden=false;$('recBtn').textContent='● Record';$('recBtn').classList.remove('on')};
