@@ -27,7 +27,7 @@ function setLines(arr){lines=arr;cur=-1;stopSync();render()}
 function render(){const L=$('lyrics');L.innerHTML='';
   if(!lines.length){L.innerHTML='<div class="empty"><p class="big">No lyrics yet.</p><p>Load an .lrc or paste lyrics.</p></div>';return}
   lines.forEach((l,i)=>{const d=document.createElement('div');d.className='line'+(l.t==null?' unsynced':'');if(l.words&&l.words.length){l.words.forEach(w=>{const s=document.createElement('span');s.className='w';s.textContent=w.w;d.appendChild(s);d.appendChild(document.createTextNode(' '))});d.classList.add('worded')}else d.textContent=l.text||'♪';
-    d.onclick=()=>{if(l.t!=null){audio.currentTime=l.t}};L.appendChild(d)});scrollTo(0)}
+    d.onclick=()=>{if(l.t!=null&&audio.src){audio.currentTime=l.t}};L.appendChild(d)});scrollTo(0)}
 function scrollTo(i){const L=$('lyrics'),el=L.children[i];if(!el)return;L.style.transform=`translateY(${-(el.offsetTop+el.offsetHeight/2)}px)`}
 function tick(){const t=audio.currentTime,d=audio.duration||0;
   $('cur').textContent=fmt(t);$('dur').textContent=fmt(d);if(!seeking&&d)$('seek').value=t/d*1000;
