@@ -20,7 +20,7 @@ function guessMeta(f,tags){let title=tags.title,artist=tags.artist;if(!title){co
   const m=base.split(/\s+-\s+/);if(m.length>1){artist=artist||m[0].trim();title=m.slice(1).join(' - ').trim()}else title=base}return{title,artist}}
 async function lrclib(meta,dur){const q=new URLSearchParams({track_name:meta.title});if(meta.artist)q.set('artist_name',meta.artist);
   for(const url of ['https://lrclib.net/api/search?'+q,'https://lrclib.net/api/search?q='+encodeURIComponent((meta.artist||'')+' '+meta.title)]){
-    try{const r=await fetch(url);if(!r.ok)continue;const list=(await r.json()).filter(x=>x.syncedLyrics&&(!dur||Math.abs(x.duration-dur)<6));
+    try{const r=await fetch(url,{signal:AbortSignal.timeout?AbortSignal.timeout(8000):undefined});if(!r.ok)continue;const list=(await r.json()).filter(x=>x.syncedLyrics&&(!dur||Math.abs(x.duration-dur)<6));
       if(list.length){list.sort((a,b)=>Math.abs(a.duration-dur)-Math.abs(b.duration-dur));return list[0]}}catch{}}return null}
 // decode -> 16k mono, vocal-focused (mid channel, band-pass 120–5000 Hz)
 async function prepAudio(f){const ab=await f.arrayBuffer();const tmp=new AudioContext();const buf=await tmp.decodeAudioData(ab);tmp.close();

@@ -18,16 +18,16 @@ const DEMO_LRC=`[ti:Limelight Demo]
 [00:26.40]♪ (applause)`;
 const fmt=s=>{s=Math.max(0,s||0);return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0')};
 const lrcTime=s=>{const m=Math.floor(s/60),r=(s-m*60).toFixed(2).padStart(5,'0');return `[${String(m).padStart(2,'0')}:${r}]`};
-function parse(txt){const out=[];let timed=false;
+function parse(txt){const out=[];let timed=false;const om=txt.match(/^\[offset:\s*([+-]?\d+)\]/mi),off=om?+om[1]/1000:0;
   txt.split(/\r?\n/).forEach(l=>{const tags=[...l.matchAll(/\[(\d+):(\d+(?:\.\d+)?)\]/g)];const text=l.replace(/\[[^\]]*\]/g,'').trim();
-    if(tags.length){timed=true;tags.forEach(t=>out.push({t:+t[1]*60+ +t[2],text}))}else if(text&&!/^\[/.test(l))out.push({t:null,text})});
+    if(tags.length){timed=true;tags.forEach(t=>out.push({t:Math.max(0,+t[1]*60+ +t[2]-off),text}))}else if(text&&!/^\[/.test(l))out.push({t:null,text})});
   if(timed)return{timed,lines:out.filter(x=>x.t!=null).sort((a,b)=>a.t-b.t)};return{timed,lines:out}}
 function setLyrics(txt){const p=parse(txt);lines=p.lines;cur=-1;render();if(!p.timed&&lines.length)startSync();else stopSync()}
 function setLines(arr){lines=arr;cur=-1;stopSync();render()}
 function render(){const L=$('lyrics');L.innerHTML='';
   if(!lines.length){L.innerHTML='<div class="empty"><p class="big">No lyrics yet.</p><p>Load an .lrc or paste lyrics.</p></div>';return}
   lines.forEach((l,i)=>{const d=document.createElement('div');d.className='line'+(l.t==null?' unsynced':'');if(l.words&&l.words.length){l.words.forEach(w=>{const s=document.createElement('span');s.className='w';s.textContent=w.w;d.appendChild(s);d.appendChild(document.createTextNode(' '))});d.classList.add('worded')}else d.textContent=l.text||'♪';
-    d.onclick=()=>{if(l.t!=null){audio.currentTime=l.t}};L.appendChild(d)});scrollTo(0)}
+    d.onclick=()=>{if(l.t!=null&&audio.src){audio.currentTime=l.t}};L.appendChild(d)});scrollTo(0)}
 function scrollTo(i){const L=$('lyrics'),el=L.children[i];if(!el)return;L.style.transform=`translateY(${-(el.offsetTop+el.offsetHeight/2)}px)`}
 function tick(){const t=audio.currentTime,d=audio.duration||0;
   $('cur').textContent=fmt(t);$('dur').textContent=fmt(d);if(!seeking&&d)$('seek').value=t/d*1000;
@@ -49,7 +49,7 @@ function ensureCtx(){if(ctx)return;ctx=new AudioContext();master=ctx.createGain(
   wet=ctx.createGain();hp.connect(wet);lp.connect(wet);wet.connect(master);
   dryG=dry;applyKaraoke()}
 let wet,dryG;function applyKaraoke(){if(!wet)return;const on=$('karaoke').checked;const t=ctx.currentTime;wet.gain.setTargetAtTime(on?1:0,t,.05);dryG.gain.setTargetAtTime(on?0:1,t,.05)}
-function loadAudio(url,name){lines=[];render();audio.src=url;$('trackName').textContent=name;audio.load()}
+let lastUrl=null;function loadAudio(url,name){if(lastUrl&&lastUrl!==url)URL.revokeObjectURL(lastUrl);lastUrl=url.startsWith('blob:')?url:null;lines=[];render();audio.src=url;$('trackName').textContent=name;audio.load()}
 function play(){ensureCtx();ctx.resume();audio.src&&audio.play().catch(e=>console.warn(e))}
 audio.onplay=()=>$('playBtn').textContent='❚❚';audio.onpause=()=>$('playBtn').textContent='▶';
 $('playBtn').onclick=()=>audio.paused?play():audio.pause();
@@ -59,7 +59,8 @@ const applyRate=()=>{audio.playbackRate=+$('rate').value;audio.preservesPitch=au
 $('rate').onchange=applyRate;$('keepPitch').onchange=applyRate;audio.onloadedmetadata=applyRate;
 // loading
 function loadFile(f){if(!f)return;if(f.type.startsWith('audio/')||/\.(mp3|wav|ogg|m4a|flac|aac|opus)$/i.test(f.name)){loadAudio(URL.createObjectURL(f),f.name);window.LLauto&&window.LLauto(f)}
-  else f.text().then(t=>setLyrics(t))}
+  else if(/\.(lrc|txt)$/i.test(f.name)||f.type.startsWith('text/'))f.text().then(t=>setLyrics(t));
+  else (window.toast||console.warn)('Unsupported file: '+f.name+' — drop audio or .lrc/.txt lyrics')}
 $('audioFile').onchange=e=>loadFile(e.target.files[0]);$('lrcFile').onchange=e=>loadFile(e.target.files[0]);
 $('demoBtn').onclick=()=>{loadAudio(window.DEMO_AUDIO,'Limelight Demo — generated beat · 0:29');setLyrics(DEMO_LRC)};
 addEventListener('dragover',e=>{e.preventDefault();document.body.classList.add('drag')});
@@ -87,6 +88,8 @@ $('micVol').oninput=e=>micGain&&(micGain.gain.value=+e.target.value);
 $('fxRev').onchange=e=>revGain&&(revGain.gain.value=e.target.checked?.45:0);$('fxEcho').onchange=e=>echoGain&&(echoGain.gain.value=e.target.checked?.5:0);
 // record
 $('recBtn').onclick=()=>{ensureCtx();ctx.resume();if(recorder&&recorder.state==='recording'){recorder.stop();return}
+  if(typeof MediaRecorder==='undefined'){(window.toast||console.warn)('Recording is not supported in this browser');return}
+  const old=$('recLink');if(old.href&&old.href.startsWith('blob:'))URL.revokeObjectURL(old.href);
   const mime=['audio/webm;codecs=opus','audio/ogg;codecs=opus','audio/mp4'].find(m=>MediaRecorder.isTypeSupported(m))||'';
   recorder=new MediaRecorder(recDest.stream,mime?{mimeType:mime}:{});chunks=[];recorder.ondataavailable=e=>e.data.size&&chunks.push(e.data);
   recorder.onstop=()=>{const b=new Blob(chunks,{type:recorder.mimeType});const a=$('recLink');a.href=URL.createObjectURL(b);a.download='karaoke-take.'+(b.type.includes('mp4')?'m4a':b.type.includes('ogg')?'ogg':'webm');a.hidden=false;$('recBtn').textContent='● Record';$('recBtn').classList.remove('on')};
@@ -95,7 +98,7 @@ $('recBtn').onclick=()=>{ensureCtx();ctx.resume();if(recorder&&recorder.state===
 addEventListener('keydown',e=>{if(e.target.matches('textarea,input[type=text]')||$('dlg').open)return;
   if(e.code==='Space'){e.preventDefault();if(syncMode&&!audio.paused&&e.shiftKey)tap();else audio.paused?play():audio.pause()}
   else if(e.code==='Enter'||e.key==='t'){e.preventDefault();tap()}
-  else if(e.code==='ArrowRight')audio.currentTime+=5;else if(e.code==='ArrowLeft')audio.currentTime-=5;
+  else if(e.code==='ArrowRight'){if(audio.duration)audio.currentTime=Math.min(audio.duration,audio.currentTime+5)}else if(e.code==='ArrowLeft')audio.currentTime=Math.max(0,audio.currentTime-5);
   else if(e.key==='m')$('micBtn').click();else if(e.key==='r')$('recBtn').click()});
 requestAnimationFrame(tick);
 window.LL={audio,play,setLines,setLyrics,loadAudio,lrcTime,get lines(){return lines},enableMic:()=>{if(!micStream)$('micBtn').click()}};

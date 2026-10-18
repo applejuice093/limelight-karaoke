@@ -25,6 +25,20 @@ python3 -m http.server 8000   # then open http://localhost:8000
 ```
 Auto-transcription (module worker) and the mic need http(s), not `file://`.
 
+## Tests
+```
+node --test tests/   # Node 18+, no install needed
+```
+The tests cover the LRC parser (sorting, repeated timestamps, `[offset:]`, plain-text tap-sync) and the time formatters.
+
+## Supported files
+- **Audio:** mp3, wav, ogg, m4a, flac, aac, opus (anything the browser can decode)
+- **Lyrics:** `.lrc` (timed, `[offset:]` honoured) or `.txt` (plain lines open tap-sync)
+- Other files are ignored with a notice.
+
+## Privacy
+Audio is processed locally and never uploaded. Two network requests can happen: the song's title/artist are sent to lrclib.net for the lyrics lookup (turn off "LRCLIB" in Advanced to stop this), and the Whisper model is downloaded once from the Hugging Face CDN via jsDelivr.
+
 ## Limitations
 - The first transcription downloads the model once (~80 MB for base, ~250 MB for small), then the browser caches it. It runs on CPU (WASM), so it takes roughly 0.5–2× the song length.
 - Whisper on sung vocals over music is imperfect: expect wrong words, especially with loud mixes. LRCLIB results are preferred when they exist, and the Advanced menu lets you paste correct lyrics.
