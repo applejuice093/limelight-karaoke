@@ -95,7 +95,7 @@ $('recBtn').onclick=()=>{ensureCtx();ctx.resume();if(recorder&&recorder.state===
 addEventListener('keydown',e=>{if(e.target.matches('textarea,input[type=text]')||$('dlg').open)return;
   if(e.code==='Space'){e.preventDefault();if(syncMode&&!audio.paused&&e.shiftKey)tap();else audio.paused?play():audio.pause()}
   else if(e.code==='Enter'||e.key==='t'){e.preventDefault();tap()}
-  else if(e.code==='ArrowRight')audio.currentTime+=5;else if(e.code==='ArrowLeft')audio.currentTime-=5;
+  else if(e.code==='ArrowRight'){if(audio.duration)audio.currentTime=Math.min(audio.duration,audio.currentTime+5)}else if(e.code==='ArrowLeft')audio.currentTime=Math.max(0,audio.currentTime-5);
   else if(e.key==='m')$('micBtn').click();else if(e.key==='r')$('recBtn').click()});
 requestAnimationFrame(tick);
 window.LL={audio,play,setLines,setLyrics,loadAudio,lrcTime,get lines(){return lines},enableMic:()=>{if(!micStream)$('micBtn').click()}};
