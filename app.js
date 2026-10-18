@@ -18,9 +18,9 @@ const DEMO_LRC=`[ti:Limelight Demo]
 [00:26.40]♪ (applause)`;
 const fmt=s=>{s=Math.max(0,s||0);return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0')};
 const lrcTime=s=>{const m=Math.floor(s/60),r=(s-m*60).toFixed(2).padStart(5,'0');return `[${String(m).padStart(2,'0')}:${r}]`};
-function parse(txt){const out=[];let timed=false;
+function parse(txt){const out=[];let timed=false;const om=txt.match(/^\[offset:\s*([+-]?\d+)\]/mi),off=om?+om[1]/1000:0;
   txt.split(/\r?\n/).forEach(l=>{const tags=[...l.matchAll(/\[(\d+):(\d+(?:\.\d+)?)\]/g)];const text=l.replace(/\[[^\]]*\]/g,'').trim();
-    if(tags.length){timed=true;tags.forEach(t=>out.push({t:+t[1]*60+ +t[2],text}))}else if(text&&!/^\[/.test(l))out.push({t:null,text})});
+    if(tags.length){timed=true;tags.forEach(t=>out.push({t:Math.max(0,+t[1]*60+ +t[2]-off),text}))}else if(text&&!/^\[/.test(l))out.push({t:null,text})});
   if(timed)return{timed,lines:out.filter(x=>x.t!=null).sort((a,b)=>a.t-b.t)};return{timed,lines:out}}
 function setLyrics(txt){const p=parse(txt);lines=p.lines;cur=-1;render();if(!p.timed&&lines.length)startSync();else stopSync()}
 function setLines(arr){lines=arr;cur=-1;stopSync();render()}
