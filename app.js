@@ -16,11 +16,11 @@ const DEMO_LRC=`[ti:Limelight Demo]
 [00:21.60]Oh-oh, oh-oh, carry on
 [00:24.00]Till the final note is gone
 [00:26.40]♪ (applause)`;
-const fmt=s=>{s=Math.max(0,s||0);return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0')};
-const lrcTime=s=>{const m=Math.floor(s/60),r=(s-m*60).toFixed(2).padStart(5,'0');return `[${String(m).padStart(2,'0')}:${r}]`};
+const fmt=s=>{s=Number.isFinite(s)?Math.max(0,s):0;return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0')};
+const lrcTime=s=>{const cs=Math.round(Math.max(0,s||0)*100),m=Math.floor(cs/6000),r=((cs%6000)/100).toFixed(2).padStart(5,'0');return `[${String(m).padStart(2,'0')}:${r}]`};
 function parse(txt){const out=[];let timed=false;const om=txt.match(/^\[offset:\s*([+-]?\d+)\]/mi),off=om?+om[1]/1000:0;
-  txt.split(/\r?\n/).forEach(l=>{const tags=[...l.matchAll(/\[(\d+):(\d+(?:\.\d+)?)\]/g)];const text=l.replace(/\[[^\]]*\]/g,'').trim();
-    if(tags.length){timed=true;tags.forEach(t=>out.push({t:Math.max(0,+t[1]*60+ +t[2]-off),text}))}else if(text&&!/^\[/.test(l))out.push({t:null,text})});
+  txt.split(/\r?\n/).forEach(l=>{const tags=[...l.matchAll(/\[(\d+):(\d+)(?:[.:](\d+))?\]/g)];const text=l.replace(/\[[^\]]*\]/g,'').trim();
+    if(tags.length){timed=true;tags.forEach(t=>out.push({t:Math.max(0,+t[1]*60+ +t[2]+(t[3]?+('0.'+t[3]):0)-off),text}))}else if(text&&!/^\[/.test(l))out.push({t:null,text})});
   if(timed)return{timed,lines:out.filter(x=>x.t!=null).sort((a,b)=>a.t-b.t)};return{timed,lines:out}}
 function setLyrics(txt){const p=parse(txt);lines=p.lines;cur=-1;render();if(!p.timed&&lines.length)startSync();else stopSync()}
 function setLines(arr){lines=arr;cur=-1;stopSync();render()}
@@ -49,9 +49,9 @@ function ensureCtx(){if(ctx)return;ctx=new AudioContext();master=ctx.createGain(
   wet=ctx.createGain();hp.connect(wet);lp.connect(wet);wet.connect(master);
   dryG=dry;applyKaraoke()}
 let wet,dryG;function applyKaraoke(){if(!wet)return;const on=$('karaoke').checked;const t=ctx.currentTime;wet.gain.setTargetAtTime(on?1:0,t,.05);dryG.gain.setTargetAtTime(on?0:1,t,.05)}
-let lastUrl=null;function loadAudio(url,name){if(lastUrl&&lastUrl!==url)URL.revokeObjectURL(lastUrl);lastUrl=url.startsWith('blob:')?url:null;lines=[];render();audio.src=url;$('trackName').textContent=name;audio.load()}
+let lastUrl=null;function loadAudio(url,name){if(lastUrl&&lastUrl!==url)URL.revokeObjectURL(lastUrl);lastUrl=url.startsWith('blob:')?url:null;lines=[];stopSync();render();audio.src=url;$('trackName').textContent=name;audio.load()}
 function play(){ensureCtx();ctx.resume();audio.src&&audio.play().catch(e=>console.warn(e))}
-audio.onplay=()=>$('playBtn').textContent='❚❚';audio.onpause=()=>$('playBtn').textContent='▶';
+const setPlayBtn=on=>{const b=$('playBtn');b.textContent=on?'❚❚':'▶';b.setAttribute('aria-label',on?'Pause':'Play')};audio.onplay=()=>setPlayBtn(true);audio.onpause=()=>setPlayBtn(false);
 $('playBtn').onclick=()=>audio.paused?play():audio.pause();
 let seeking=false;$('seek').oninput=e=>{seeking=true;if(audio.duration)audio.currentTime=e.target.value/1000*audio.duration};$('seek').onchange=()=>seeking=false;
 $('vol').oninput=e=>audio.volume=+e.target.value;audio.volume=.9;
@@ -72,7 +72,7 @@ function startSync(){syncMode=true;syncIdx=0;lines.forEach(l=>l.t=null);$('syncB
 function stopSync(){syncMode=false;$('syncBar').hidden=true}
 function updSync(){$('syncCount').textContent=`${syncIdx}/${lines.length} stamped`}
 function tap(){if(!syncMode||syncIdx>=lines.length)return;lines[syncIdx].t=audio.currentTime;$('lyrics').children[syncIdx].classList.remove('unsynced');syncIdx++;updSync();if(syncIdx>=lines.length)stopSync()}
-function exportLrc(){const txt=lines.filter(l=>l.t!=null).map(l=>lrcTime(l.t)+l.text).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));a.download=($('trackName').textContent.replace(/\.[^.]+$/,'')||'lyrics')+'.lrc';a.click()}
+function exportLrc(){const txt=lines.filter(l=>l.t!=null).map(l=>lrcTime(l.t)+l.text).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));a.download=($('trackName').textContent.replace(/\.(mp3|wav|ogg|m4a|flac|aac|opus)$/i,'').replace(/[\\/:*?"<>|]+/g,'-').trim()||'lyrics')+'.lrc';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 $('syncExport').onclick=exportLrc;$('syncDone').onclick=stopSync;
 // mic
 function impulse(sec){const n=ctx.sampleRate*sec,b=ctx.createBuffer(2,n,ctx.sampleRate);for(let c=0;c<2;c++){const d=b.getChannelData(c);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,3)}return b}
@@ -95,11 +95,11 @@ $('recBtn').onclick=()=>{ensureCtx();ctx.resume();if(recorder&&recorder.state===
   recorder.onstop=()=>{const b=new Blob(chunks,{type:recorder.mimeType});const a=$('recLink');a.href=URL.createObjectURL(b);a.download='karaoke-take.'+(b.type.includes('mp4')?'m4a':b.type.includes('ogg')?'ogg':'webm');a.hidden=false;$('recBtn').textContent='● Record';$('recBtn').classList.remove('on')};
   recorder.start(250);$('recBtn').textContent='■ Stop';$('recBtn').classList.add('on');if(audio.paused)play()};
 // keys
-addEventListener('keydown',e=>{if(e.target.matches('textarea,input[type=text]')||$('dlg').open)return;
+addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||e.target.matches('textarea,input[type=text],select')||$('dlg').open)return;
   if(e.code==='Space'){e.preventDefault();if(syncMode&&!audio.paused&&e.shiftKey)tap();else audio.paused?play():audio.pause()}
   else if(e.code==='Enter'||e.key==='t'){e.preventDefault();tap()}
   else if(e.code==='ArrowRight'){if(audio.duration)audio.currentTime=Math.min(audio.duration,audio.currentTime+5)}else if(e.code==='ArrowLeft')audio.currentTime=Math.max(0,audio.currentTime-5);
   else if(e.key==='m')$('micBtn').click();else if(e.key==='r')$('recBtn').click()});
 requestAnimationFrame(tick);
-window.LL={audio,play,setLines,setLyrics,loadAudio,lrcTime,get lines(){return lines},enableMic:()=>{if(!micStream)$('micBtn').click()}};
+window.LL={audio,play,setLines,setLyrics,loadAudio,lrcTime,exportLrc,get lines(){return lines},enableMic:()=>{if(!micStream)$('micBtn').click()}};
 })();

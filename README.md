@@ -27,13 +27,14 @@ Auto-transcription (module worker) and the mic need http(s), not `file://`.
 
 ## Tests
 ```
-node --test tests/   # Node 18+, no install needed
+npm test                         # Node 18+, no install needed
+# or: node --test tests/*.test.mjs
 ```
-The tests cover the LRC parser (sorting, repeated timestamps, `[offset:]`, plain-text tap-sync) and the time formatters.
+The tests cover the LRC parser (sorting, repeated timestamps, `[offset:]`, `[mm:ss:xx]` stamps, plain-text tap-sync), the time formatters, filename/ID3 metadata guessing and how Whisper words are grouped into lines.
 
 ## Supported files
 - **Audio:** mp3, wav, ogg, m4a, flac, aac, opus (anything the browser can decode)
-- **Lyrics:** `.lrc` (timed, `[offset:]` honoured) or `.txt` (plain lines open tap-sync)
+- **Lyrics:** `.lrc` (timed as `[mm:ss.xx]` or `[mm:ss:xx]`, `[offset:]` honoured) or `.txt` (plain lines open tap-sync)
 - Other files are ignored with a notice.
 
 ## Privacy

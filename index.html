@@ -1,5 +1,5 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Limelight — Karaoke Stage</title><link rel="icon" href="data:,"><link rel="stylesheet" href="style.css"></head><body>
+<title>Limelight — Karaoke Stage</title><meta name="description" content="Drop a song and sing: synced lyrics, vocal removal and a live mic, all in your browser with no uploads."><meta name="theme-color" content="#0b0a09"><link rel="icon" href="data:,"><link rel="stylesheet" href="style.css"></head><body>
 <div class="spot" aria-hidden="true"></div>
 <header class="top">
   <div class="brand"><span class="dot"></span>Limelight<em>karaoke stage</em></div>
@@ -22,7 +22,7 @@
   <div id="syncBar" class="syncbar" hidden><b>Tap-sync</b> Play the song and press <kbd>Enter</kbd> / <kbd>T</kbd> / <kbd>Shift+Space</kbd> as each line begins. <span id="syncCount"></span>
     <button id="syncExport" class="chip">Export .lrc</button><button id="syncDone" class="chip">Done</button></div>
   <div class="drophint" id="drop">Release — Limelight handles the rest</div>
-  <div id="status" class="status" hidden><div class="st-title" id="stTitle">Working…</div><div class="st-sub" id="stSub"></div><div class="bar"><i id="stBar"></i></div></div>
+  <div id="status" class="status" role="status" aria-live="polite" hidden><div class="st-title" id="stTitle">Working…</div><div class="st-sub" id="stSub"></div><div class="bar"><i id="stBar"></i></div></div>
 </main>
 <aside class="mic">
   <h3>Microphone</h3>
@@ -38,7 +38,7 @@
 <footer class="deck">
   <button id="playBtn" class="play" aria-label="Play">▶</button>
   <span id="cur" class="t">0:00</span>
-  <input type="range" id="seek" min="0" max="1000" value="0" class="seek">
+  <input type="range" id="seek" min="0" max="1000" value="0" class="seek" aria-label="Seek">
   <span id="dur" class="t">0:00</span>
   <label class="mini">Vol<input type="range" id="vol" min="0" max="1" step="0.01" value="0.9"></label>
   <label class="mini">Speed<select id="rate"><option>0.75</option><option>0.9</option><option selected>1</option><option>1.1</option><option>1.25</option></select></label>
@@ -51,4 +51,4 @@
   <div class="row"><button value="cancel" class="chip">Cancel</button><button id="applyLyrics" value="ok" class="chip hot">Use lyrics</button></div>
 </form></dialog>
 <script src="demo.js"></script><script src="app.js"></script><script type="module" src="auto.js"></script>
-<div id="toast" class="toast" hidden></div></body></html>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div></body></html>

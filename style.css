@@ -55,3 +55,4 @@ textarea{width:100%;background:#0b0a09;color:var(--ink);border:1px solid #2c2822
 .line.cur.worded{background:none;color:#f3ece2}
 .line.cur .w{background:linear-gradient(90deg,var(--amber) var(--q,0%),#f3ece2 var(--q,0%));-webkit-background-clip:text;background-clip:text;color:transparent;transition:none}
 .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#1d1812;border:1px solid #3a2f20;padding:10px 16px;border-radius:999px;font-size:13px;z-index:9}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}

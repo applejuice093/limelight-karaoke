@@ -36,3 +36,20 @@ test('time formatting round-trips the LRC shape', () => {
   assert.equal(fmt(NaN), '0:00');
   assert.equal(lrcTime(65.5), '[01:05.50]');
 });
+
+test('lrcTime rounds to centiseconds without producing [mm:60.00]', () => {
+  assert.equal(lrcTime(59.999), '[01:00.00]');
+  assert.equal(lrcTime(119.996), '[02:00.00]');
+  assert.equal(lrcTime(-3), '[00:00.00]');
+});
+
+test('fmt shows 0:00 for an unknown (Infinity) duration', () => {
+  assert.equal(fmt(Infinity), '0:00');
+  assert.equal(fmt(-5), '0:00');
+  assert.equal(fmt(3599), '59:59');
+});
+
+test('accepts [mm:ss:xx] and [mm:ss] stamps as well as [mm:ss.xx]', () => {
+  const p = parse('[00:01:50]colon\n[00:03]bare\n[00:02.25]dot');
+  assert.deepEqual(p.lines.map((l) => [l.t, l.text]), [[1.5, 'colon'], [2.25, 'dot'], [3, 'bare']]);
+});
