@@ -1,0 +1,12 @@
+{
+  "name": "limelight-karaoke",
+  "private": true,
+  "description": "Drop-a-song karaoke that runs entirely in the browser",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "start": "python3 -m http.server 8000"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
