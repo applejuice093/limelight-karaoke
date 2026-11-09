@@ -48,3 +48,8 @@ test('fmt shows 0:00 for an unknown (Infinity) duration', () => {
   assert.equal(fmt(-5), '0:00');
   assert.equal(fmt(3599), '59:59');
 });
+
+test('accepts [mm:ss:xx] and [mm:ss] stamps as well as [mm:ss.xx]', () => {
+  const p = parse('[00:01:50]colon\n[00:03]bare\n[00:02.25]dot');
+  assert.deepEqual(p.lines.map((l) => [l.t, l.text]), [[1.5, 'colon'], [2.25, 'dot'], [3, 'bare']]);
+});
