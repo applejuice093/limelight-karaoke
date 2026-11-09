@@ -27,7 +27,8 @@ Auto-transcription (module worker) and the mic need http(s), not `file://`.
 
 ## Tests
 ```
-node --test tests/   # Node 18+, no install needed
+npm test                         # Node 18+, no install needed
+# or: node --test tests/*.test.mjs
 ```
 The tests cover the LRC parser (sorting, repeated timestamps, `[offset:]`, plain-text tap-sync) and the time formatters.
 
