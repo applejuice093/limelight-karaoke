@@ -17,7 +17,7 @@ const DEMO_LRC=`[ti:Limelight Demo]
 [00:24.00]Till the final note is gone
 [00:26.40]♪ (applause)`;
 const fmt=s=>{s=Math.max(0,s||0);return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0')};
-const lrcTime=s=>{const m=Math.floor(s/60),r=(s-m*60).toFixed(2).padStart(5,'0');return `[${String(m).padStart(2,'0')}:${r}]`};
+const lrcTime=s=>{const cs=Math.round(Math.max(0,s||0)*100),m=Math.floor(cs/6000),r=((cs%6000)/100).toFixed(2).padStart(5,'0');return `[${String(m).padStart(2,'0')}:${r}]`};
 function parse(txt){const out=[];let timed=false;const om=txt.match(/^\[offset:\s*([+-]?\d+)\]/mi),off=om?+om[1]/1000:0;
   txt.split(/\r?\n/).forEach(l=>{const tags=[...l.matchAll(/\[(\d+):(\d+(?:\.\d+)?)\]/g)];const text=l.replace(/\[[^\]]*\]/g,'').trim();
     if(tags.length){timed=true;tags.forEach(t=>out.push({t:Math.max(0,+t[1]*60+ +t[2]-off),text}))}else if(text&&!/^\[/.test(l))out.push({t:null,text})});

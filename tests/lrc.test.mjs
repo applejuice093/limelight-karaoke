@@ -36,3 +36,9 @@ test('time formatting round-trips the LRC shape', () => {
   assert.equal(fmt(NaN), '0:00');
   assert.equal(lrcTime(65.5), '[01:05.50]');
 });
+
+test('lrcTime rounds to centiseconds without producing [mm:60.00]', () => {
+  assert.equal(lrcTime(59.999), '[01:00.00]');
+  assert.equal(lrcTime(119.996), '[02:00.00]');
+  assert.equal(lrcTime(-3), '[00:00.00]');
+});
