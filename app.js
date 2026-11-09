@@ -72,7 +72,7 @@ function startSync(){syncMode=true;syncIdx=0;lines.forEach(l=>l.t=null);$('syncB
 function stopSync(){syncMode=false;$('syncBar').hidden=true}
 function updSync(){$('syncCount').textContent=`${syncIdx}/${lines.length} stamped`}
 function tap(){if(!syncMode||syncIdx>=lines.length)return;lines[syncIdx].t=audio.currentTime;$('lyrics').children[syncIdx].classList.remove('unsynced');syncIdx++;updSync();if(syncIdx>=lines.length)stopSync()}
-function exportLrc(){const txt=lines.filter(l=>l.t!=null).map(l=>lrcTime(l.t)+l.text).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));a.download=($('trackName').textContent.replace(/\.[^.]+$/,'')||'lyrics')+'.lrc';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function exportLrc(){const txt=lines.filter(l=>l.t!=null).map(l=>lrcTime(l.t)+l.text).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));a.download=($('trackName').textContent.replace(/\.(mp3|wav|ogg|m4a|flac|aac|opus)$/i,'').replace(/[\\/:*?"<>|]+/g,'-').trim()||'lyrics')+'.lrc';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 $('syncExport').onclick=exportLrc;$('syncDone').onclick=stopSync;
 // mic
 function impulse(sec){const n=ctx.sampleRate*sec,b=ctx.createBuffer(2,n,ctx.sampleRate);for(let c=0;c<2;c++){const d=b.getChannelData(c);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,3)}return b}
