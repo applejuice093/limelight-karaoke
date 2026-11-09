@@ -42,3 +42,9 @@ test('lrcTime rounds to centiseconds without producing [mm:60.00]', () => {
   assert.equal(lrcTime(119.996), '[02:00.00]');
   assert.equal(lrcTime(-3), '[00:00.00]');
 });
+
+test('fmt shows 0:00 for an unknown (Infinity) duration', () => {
+  assert.equal(fmt(Infinity), '0:00');
+  assert.equal(fmt(-5), '0:00');
+  assert.equal(fmt(3599), '59:59');
+});
