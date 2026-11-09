@@ -10,8 +10,9 @@ const cacheGet=k=>idb('readonly',s=>s.get(k)).catch(()=>null),cachePut=(k,v)=>id
 async function fileKey(f){const head=await f.slice(0,262144).arrayBuffer();const h=await crypto.subtle.digest('SHA-256',head);return [...new Uint8Array(h)].slice(0,12).map(b=>b.toString(16).padStart(2,'0')).join('')+':'+f.size}
 // ID3v2 tags
 async function id3(f){try{const b=new Uint8Array(await f.slice(0,131072).arrayBuffer());if(String.fromCharCode(...b.slice(0,3))!=='ID3')return{};
-  const v=b[3],size=(b[6]<<21)|(b[7]<<14)|(b[8]<<7)|b[9];let p=10;const out={};
-  while(p<size&&p+10<b.length){const id=String.fromCharCode(...b.slice(p,p+4));if(!/^[A-Z0-9]{4}$/.test(id))break;
+  const v=b[3],size=((b[6]<<21)|(b[7]<<14)|(b[8]<<7)|b[9])+10;let p=10;const out={};
+  if(b[5]&0x40)p+=v===4?((b[10]<<21)|(b[11]<<14)|(b[12]<<7)|b[13]):4+((b[10]<<24)|(b[11]<<16)|(b[12]<<8)|b[13]);
+  while(p+10<=size&&p+10<b.length){const id=String.fromCharCode(...b.slice(p,p+4));if(!/^[A-Z0-9]{4}$/.test(id))break;
     const n=v===4?(b[p+4]<<21)|(b[p+5]<<14)|(b[p+6]<<7)|b[p+7]:(b[p+4]<<24)|(b[p+5]<<16)|(b[p+6]<<8)|b[p+7];
     if(id==='TIT2'||id==='TPE1'){const enc=b[p+10],raw=b.slice(p+11,p+10+n);let s;
       if(enc===1||enc===2)s=new TextDecoder(enc===1?'utf-16':'utf-16be').decode(raw);else s=new TextDecoder(enc===3?'utf-8':'latin1').decode(raw);
