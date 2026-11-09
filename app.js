@@ -72,7 +72,7 @@ function startSync(){syncMode=true;syncIdx=0;lines.forEach(l=>l.t=null);$('syncB
 function stopSync(){syncMode=false;$('syncBar').hidden=true}
 function updSync(){$('syncCount').textContent=`${syncIdx}/${lines.length} stamped`}
 function tap(){if(!syncMode||syncIdx>=lines.length)return;lines[syncIdx].t=audio.currentTime;$('lyrics').children[syncIdx].classList.remove('unsynced');syncIdx++;updSync();if(syncIdx>=lines.length)stopSync()}
-function exportLrc(){const txt=lines.filter(l=>l.t!=null).map(l=>lrcTime(l.t)+l.text).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));a.download=($('trackName').textContent.replace(/\.[^.]+$/,'')||'lyrics')+'.lrc';a.click()}
+function exportLrc(){const txt=lines.filter(l=>l.t!=null).map(l=>lrcTime(l.t)+l.text).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));a.download=($('trackName').textContent.replace(/\.[^.]+$/,'')||'lyrics')+'.lrc';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 $('syncExport').onclick=exportLrc;$('syncDone').onclick=stopSync;
 // mic
 function impulse(sec){const n=ctx.sampleRate*sec,b=ctx.createBuffer(2,n,ctx.sampleRate);for(let c=0;c<2;c++){const d=b.getChannelData(c);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,3)}return b}
@@ -101,5 +101,5 @@ addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||e.target.match
   else if(e.code==='ArrowRight'){if(audio.duration)audio.currentTime=Math.min(audio.duration,audio.currentTime+5)}else if(e.code==='ArrowLeft')audio.currentTime=Math.max(0,audio.currentTime-5);
   else if(e.key==='m')$('micBtn').click();else if(e.key==='r')$('recBtn').click()});
 requestAnimationFrame(tick);
-window.LL={audio,play,setLines,setLyrics,loadAudio,lrcTime,get lines(){return lines},enableMic:()=>{if(!micStream)$('micBtn').click()}};
+window.LL={audio,play,setLines,setLyrics,loadAudio,lrcTime,exportLrc,get lines(){return lines},enableMic:()=>{if(!micStream)$('micBtn').click()}};
 })();

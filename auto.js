@@ -52,6 +52,5 @@ async function auto(f,force=false){current=f;const key=await fileKey(f);const me
 function apply(c){if(c.kind==='lrc')LL.setLyrics(c.lrc);else LL.setLines(c.lines)}
 window.LLauto=f=>auto(f);window.LLprep=prepAudio;window.LLbuild=buildLines;
 $('retranscribe').onclick=()=>current?auto(current,true):toast('Drop a song first');
-$('exportLrc').onclick=()=>{const t=LL.lines.filter(l=>l.t!=null).map(l=>LL.lrcTime(l.t)+l.text).join('\n');if(!t)return toast('No timed lyrics');
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t]));a.download='lyrics.lrc';a.click()};
+$('exportLrc').onclick=()=>LL.lines.some(l=>l.t!=null)?LL.exportLrc():toast('No timed lyrics');
 if(location.protocol==='file:')toast('Tip: serve over http(s) for auto-lyrics & mic — e.g. python3 -m http.server',8000);
