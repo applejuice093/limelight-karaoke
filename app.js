@@ -95,7 +95,7 @@ $('recBtn').onclick=()=>{ensureCtx();ctx.resume();if(recorder&&recorder.state===
   recorder.onstop=()=>{const b=new Blob(chunks,{type:recorder.mimeType});const a=$('recLink');a.href=URL.createObjectURL(b);a.download='karaoke-take.'+(b.type.includes('mp4')?'m4a':b.type.includes('ogg')?'ogg':'webm');a.hidden=false;$('recBtn').textContent='● Record';$('recBtn').classList.remove('on')};
   recorder.start(250);$('recBtn').textContent='■ Stop';$('recBtn').classList.add('on');if(audio.paused)play()};
 // keys
-addEventListener('keydown',e=>{if(e.target.matches('textarea,input[type=text]')||$('dlg').open)return;
+addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||e.target.matches('textarea,input[type=text],select')||$('dlg').open)return;
   if(e.code==='Space'){e.preventDefault();if(syncMode&&!audio.paused&&e.shiftKey)tap();else audio.paused?play():audio.pause()}
   else if(e.code==='Enter'||e.key==='t'){e.preventDefault();tap()}
   else if(e.code==='ArrowRight'){if(audio.duration)audio.currentTime=Math.min(audio.duration,audio.currentTime+5)}else if(e.code==='ArrowLeft')audio.currentTime=Math.max(0,audio.currentTime-5);
