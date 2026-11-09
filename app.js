@@ -51,7 +51,7 @@ function ensureCtx(){if(ctx)return;ctx=new AudioContext();master=ctx.createGain(
 let wet,dryG;function applyKaraoke(){if(!wet)return;const on=$('karaoke').checked;const t=ctx.currentTime;wet.gain.setTargetAtTime(on?1:0,t,.05);dryG.gain.setTargetAtTime(on?0:1,t,.05)}
 let lastUrl=null;function loadAudio(url,name){if(lastUrl&&lastUrl!==url)URL.revokeObjectURL(lastUrl);lastUrl=url.startsWith('blob:')?url:null;lines=[];stopSync();render();audio.src=url;$('trackName').textContent=name;audio.load()}
 function play(){ensureCtx();ctx.resume();audio.src&&audio.play().catch(e=>console.warn(e))}
-audio.onplay=()=>$('playBtn').textContent='❚❚';audio.onpause=()=>$('playBtn').textContent='▶';
+const setPlayBtn=on=>{const b=$('playBtn');b.textContent=on?'❚❚':'▶';b.setAttribute('aria-label',on?'Pause':'Play')};audio.onplay=()=>setPlayBtn(true);audio.onpause=()=>setPlayBtn(false);
 $('playBtn').onclick=()=>audio.paused?play():audio.pause();
 let seeking=false;$('seek').oninput=e=>{seeking=true;if(audio.duration)audio.currentTime=e.target.value/1000*audio.duration};$('seek').onchange=()=>seeking=false;
 $('vol').oninput=e=>audio.volume=+e.target.value;audio.volume=.9;
